@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول | QuizGame</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- AdMob SDK -->
+    <script src="https://admob.google.com/games/adsdk/admob_sdk_v2024.js"></script>
+    <!-- التنسيقات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <img src="/images/logo.png" alt="QuizGame Logo" class="logo">
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="phone">رقم الهاتف</label>
+                <input type="tel" id="phone" placeholder="مثال: 01234567890" required>
+            </div>
+            <button type="submit" class="btn-primary">تسجيل الدخول</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { auth, initAdMob } from '/js/config.js';
+        import '/js/auth.js';
+        
+        // تهيئة الإعلانات
+        initAdMob();
+        
+        // إدارة تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            
+            if (phone === "01227106091") {
+                window.location.href = "/admin.html";
+                return;
+            }
+            
+            try {
+                await auth.signInAnonymously();
+                window.location.href = "/index.html";
+            } catch (error) {
+                alert("حدث خطأ في التسجيل: " + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
