@@ -1,0 +1,34 @@
+/* حركات الإجابة */
+.correct-answer {
+    animation: correctAnim 0.5s ease;
+    background-color: var(--success);
+}
+
+.wrong-answer {
+    animation: wrongAnim 0.5s ease;
+    background-color: var(--danger);
+}
+
+@keyframes correctAnim {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes wrongAnim {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+}
+
+/* حركات الانتقال */
+.page-transition {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
