@@ -1,0 +1,26 @@
+/* الثيم الداكن الافتراضي */
+.dark-theme {
+    --primary-bg: #0f2027;
+    --secondary-bg: #203a43;
+    --accent-color: #0fdcff;
+    --text-color: #f8f9fa;
+    --card-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* ثيم فاتح */
+.light-theme {
+    --primary-bg: #f8f9fa;
+    --secondary-bg: #e9ecef;
+    --accent-color: #0d6efd;
+    --text-color: #212529;
+    --card-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* ثيم نيون */
+.neon-theme {
+    --primary-bg: #0f0c29;
+    --secondary-bg: #302b63;
+    --accent-color: #ff00ff;
+    --text-color: #ffffff;
+    --card-bg: rgba(255, 0, 255, 0.1);
+}
