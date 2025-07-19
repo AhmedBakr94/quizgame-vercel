@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سحب النقاط | QuizGame</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- التنسيقات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="withdraw-container">
+        <header>
+            <h1>سحب النقاط</h1>
+            <a href="/index.html" class="back-btn">← رجوع</a>
+        </header>
+        
+        <main>
+            <div class="balance-card">
+                <h3>رصيدك الحالي</h3>
+                <p id="currentBalance">0 نقطة</p>
+            </div>
+            
+            <div class="target-card">
+                <h3>الحد الأدنى للسحب</h3>
+                <p id="targetAmount">3000 نقطة (30 جنيهاً)</p>
+            </div>
+            
+            <form id="withdrawForm">
+                <div class="form-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>طريقة السحب</label>
+                    <div class="methods">
+                        <label class="method-option">
+                            <input type="radio" name="method" value="vodafone" checked>
+                            <img src="/images/providers/vodafone.png" alt="فودافون كاش">
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="method" value="orange">
+                            <img src="/images/providers/orange.png" alt="أورنج كاش">
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="method" value="etisalat">
+                            <img src="/images/providers/etisalat.png" alt="اتصالات كاش">
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="method" value="we">
+                            <img src="/images/providers/we.png" alt="وي كاش">
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>طلب السحب</button>
+            </form>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db, auth } from '/js/config.js';
+        
+        let userData = {};
+        let currentTarget = 3000;
+        
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = "/login.html";
+                return;
+            }
+            
+            db.ref('users/' + user.uid).on('value', snapshot => {
+                userData = snapshot.val() || {};
+                document.getElementById('currentBalance').textContent = 
+                    (userData.points || 0) + ' نقطة';
+                
+                currentTarget = userData.lastWithdrawTarget || 3000;
+                document.getElementById('targetAmount').textContent = 
+                    `${currentTarget} نقطة (${currentTarget / 100} جنيهاً)`;
+                
+                document.getElementById('submitBtn').disabled = 
+                    (userData.points || 0) < currentTarget;
+            });
+        });
+        
+        document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value;
+            const method = document.querySelector('input[name="method"]:checked').value;
+            
+            if ((userData.points || 0) < currentTarget) {
+                alert('لا تملك نقاط كافية للسحب');
+                return;
+            }
+            
+            try {
+                await db.ref('withdrawRequests').push().set({
+                    userId: auth.currentUser.uid,
+                    phone: phone,
+                    method: method,
+                    amount: currentTarget / 100,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                });
+                
+                await db.ref('users/' + auth.currentUser.uid).update({
+                    points: firebase.database.ServerValue.increment(-currentTarget),
+                    lastWithdrawTarget: currentTarget + 3000
+                });
+                
+                alert('تم تقديم طلب السحب بنجاح! سيتم التحويل خلال 24 ساعة');
+                window.location.href = "/index.html";
+            } catch (error) {
+                alert('حدث خطأ أثناء تقديم الطلب: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
