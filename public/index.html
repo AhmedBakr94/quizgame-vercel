@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizGame | الرئيسية</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- AdMob SDK -->
+    <script src="https://admob.google.com/games/adsdk/admob_sdk_v2024.js"></script>
+    <!-- التنسيقات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/themes.css">
+</head>
+<body class="dark-theme">
+    <header class="main-header">
+        <div class="user-info">
+            <span id="username">مرحباً!</span>
+            <span id="userPoints">0 نقطة</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="offers-section">
+            <h2>العروض اليومية</h2>
+            <div id="dailyOffers"></div>
+        </section>
+
+        <section class="withdrawals-section">
+            <h2>آخر السحوبات</h2>
+            <ul id="withdrawalsList"></ul>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="/index.html" class="nav-item active">
+            <i class="icon-home"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="/questions.html" class="nav-item">
+            <i class="icon-quiz"></i>
+            <span>الأسئلة</span>
+        </a>
+        <a href="/withdraw.html" class="nav-item">
+            <i class="icon-money"></i>
+            <span>السحب</span>
+        </a>
+    </nav>
+
+    <script type="module">
+        import { db, auth, initAdMob } from '/js/config.js';
+        import '/js/auth.js';
+        
+        // تهيئة الإعلانات
+        initAdMob();
+        
+        // تحميل بيانات المستخدم
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = "/login.html";
+                return;
+            }
+            
+            db.ref('users/' + user.uid).on('value', snapshot => {
+                const userData = snapshot.val();
+                document.getElementById('username').textContent = userData.phone || 'مستخدم';
+                document.getElementById('userPoints').textContent = (userData.points || 0) + ' نقطة';
+            });
+            
+            // تحميل العروض
+            db.ref('offers').once('value').then(snapshot => {
+                document.getElementById('dailyOffers').innerHTML = snapshot.val();
+            });
+            
+            // تحميل السحوبات الحديثة
+            db.ref('withdrawals').limitToLast(5).once('value').then(snapshot => {
+                const withdrawalsList = document.getElementById('withdrawalsList');
+                snapshot.forEach(child => {
+                    const item = document.createElement('li');
+                    item.textContent = `${child.val().phone} - ${child.val().amount} جنيهاً`;
+                    withdrawalsList.appendChild(item);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
