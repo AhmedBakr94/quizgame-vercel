@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | QuizGame</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- التنسيقات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin-page">
+    <div class="admin-container">
+        <header>
+            <h1>لوحة التحكم</h1>
+            <button id="logoutAdmin">تسجيل الخروج</button>
+        </header>
+        
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="offers">العروض</button>
+            <button class="tab-btn" data-tab="users">المستخدمين</button>
+            <button class="tab-btn" data-tab="withdrawals">طلبات السحب</button>
+            <button class="tab-btn" data-tab="questions">الأسئلة</button>
+        </div>
+        
+        <div class="tab-content active" id="offersTab">
+            <h2>إدارة العروض</h2>
+            <textarea id="offerText" placeholder="أدخل العرض الترويجي هنا..."></textarea>
+            <button id="saveOffer" class="btn-primary">حفظ العرض</button>
+        </div>
+        
+        <div class="tab-content" id="usersTab">
+            <h2>إدارة المستخدمين</h2>
+            <div class="search-box">
+                <input type="text" id="userSearch" placeholder="ابحث برقم الهاتف...">
+                <button id="searchUser">بحث</button>
+            </div>
+            <div class="user-details" id="userDetails"></div>
+            <div class="add-points">
+                <input type="number" id="pointsToAdd" placeholder="عدد النقاط">
+                <button id="addPointsBtn">إضافة نقاط</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="withdrawalsTab">
+            <h2>طلبات السحب المعلقة</h2>
+            <div class="requests-list" id="requestsList"></div>
+        </div>
+        
+        <div class="tab-content" id="questionsTab">
+            <h2>إدارة الأسئلة</h2>
+            <button id="addQuestionBtn" class="btn-primary">إضافة سؤال جديد</button>
+            <div class="questions-list" id="questionsList"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from '/js/config.js';
+        
+        // التحقق من صلاحيات المدير
+        auth.onAuthStateChanged(user => {
+            if (!user || user.phoneNumber !== '+201227106091') {
+                window.location.href = "/login.html";
+            }
+        });
+        
+        // إدارة العروض
+        db.ref('offers').on('value', snapshot => {
+            document.getElementById('offerText').value = snapshot.val() || '';
+        });
+        
+        document.getElementById('saveOffer').addEventListener('click', () => {
+            const offerText = document.getElementById('offerText').value;
+            db.ref('offers').set(offerText)
+                .then(() => alert('تم حفظ العرض بنجاح'));
+        });
+        
+        // إدارة طلبات السحب
+        function loadWithdrawalRequests() {
+            db.ref('withdrawRequests').orderByChild('status').equalTo('pending').on('value', snapshot => {
+                const list = document.getElementById('requestsList');
+                list.innerHTML = '';
+                
+                snapshot.forEach(child => {
+                    const request = child.val();
+                    const item = document.createElement('div');
+                    item.className = 'request-item';
+                    item.innerHTML = `
+                        <p>رقم: ${request.phone}</p>
+                        <p>المبلغ: ${request.amount} جنيهاً</p>
+                        <p>الطريقة: ${request.method}</p>
+                        <div class="request-actions">
+                            <button class="approve-btn" data-id="${child.key}">موافقة</button>
+                            <button class="reject-btn" data-id="${child.key}">رفض</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+                
+                // معالجة الطلبات
+                document.querySelectorAll('.approve-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const requestId = this.getAttribute('data-id');
+                        db.ref('withdrawRequests/' + requestId).update({
+                            status: 'approved',
+                            processedAt: new Date().toISOString()
+                        });
+                    });
+                });
+                
+                document.querySelectorAll('.reject-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const requestId = this.getAttribute('data-id');
+                        db.ref('withdrawRequests/' + requestId).update({
+                            status: 'rejected',
+                            processedAt: new Date().toISOString()
+                        });
+                    });
+                });
+            });
+        }
+        
+        // تسجيل خروج المدير
+        document.getElementById('logoutAdmin').addEventListener('click', () => {
+            auth.signOut().then(() => window.location.href = "/login.html");
+        });
+        
+        // تهيئة لوحة التحكم
+        loadWithdrawalRequests();
+    </script>
+</body>
+</html>
