@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المتصدرين | QuizGame</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="/lib/chartjs/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="leaderboard-page">
+    <header>
+        <h1>أفضل اللاعبين</h1>
+        <a href="/index.html" class="back-btn">← رجوع</a>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="daily">اليوم</button>
+            <button class="tab-btn" data-tab="weekly">الأسبوع</button>
+            <button class="tab-btn" data-tab="alltime">الكل</button>
+        </div>
+
+        <div class="leaderboard-container">
+            <ol id="leaderboardList"></ol>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="statsChart"></canvas>
+        </div>
+    </main>
+
+    <script type="module" src="/js/leaderboard.js"></script>
+</body>
+</html>
